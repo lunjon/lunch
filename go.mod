@@ -1,4 +1,4 @@
-module lunch
+module github.com/lunjon/lunch
 
 go 1.13
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"edison/internal/pkg/edison"
+	"github.com/lunjon/lunch/internal/pkg/edison"
 	"os"
 )
 
