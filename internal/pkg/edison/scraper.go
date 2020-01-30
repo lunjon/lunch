@@ -2,54 +2,21 @@ package edison
 
 import (
 	"fmt"
-	"github.com/gocolly/colly/v2"
-	"github.com/olekukonko/tablewriter"
 	"os"
+
+	"github.com/gocolly/colly/v2"
+	"github.com/lunjon/lunch/internal/pkg/meny"
 )
 
-type course struct {
-	Type        string
-	Description string
-}
-
-type menyItem struct {
-	day     string
-	courses []*course
-}
-
-type Meny struct {
-	items []*menyItem
-}
-
-func (meny *Meny) Render() {
-	var data [][]string
-	for _, item := range meny.items {
-		for _, c := range item.courses {
-			data = append(data, []string{item.day, c.Description})
-		}
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetAutoMergeCells(true)
-	table.SetRowLine(true)
-	table.SetHeader([]string{"Day", "Courses"})
-
-	for _, v := range data {
-		table.Append(v)
-	}
-
-	table.Render()
-}
-
 var (
-	itemChannel chan *menyItem
+	itemChannel chan *meny.Day
 )
 
 // Collect ...
-func Collect() (*Meny, error) {
+func Collect() (*meny.Meny, error) {
 	days := []string{"monday", "tuesday", "wednesday", "thursday", "friday"}
 
-	itemChannel = make(chan *menyItem, len(days))
+	itemChannel = make(chan *meny.Day, len(days))
 	collector := colly.NewCollector()
 
 	for _, id := range days {
@@ -66,7 +33,7 @@ func Collect() (*Meny, error) {
 		return nil, err
 	}
 
-	items := make([]*menyItem, 0)
+	items := make([]*meny.Day, 0)
 	for d := range itemChannel {
 		if d == nil {
 			fmt.Println("Failed to parse Edison menu...")
@@ -75,28 +42,21 @@ func Collect() (*Meny, error) {
 		items = append(items, d)
 	}
 
-	return &Meny{items: items}, nil
+	return meny.NewMeny(items...), nil
 }
 
 func parseDay(element *colly.HTMLElement) {
 	day := element.ChildText("h3")
-	courses := make([]*course, 0)
+	courses := make([]*meny.Course, 0)
 
 	element.ForEach("tr", func(i int, element *colly.HTMLElement) {
 		courseType := element.ChildText("td[class=course_type]")
 		courseDescription := element.ChildText("td[class=course_description]")
 
-		c := &course{
-			Type:        courseType,
-			Description: courseDescription,
-		}
+		c := meny.NewCourse(courseType, courseDescription)
 		courses = append(courses, c)
 	})
 
-	m := &menyItem{
-		day:     day,
-		courses: courses,
-	}
-
+	m := meny.NewDay(day, courses...)
 	itemChannel <- m
 }
