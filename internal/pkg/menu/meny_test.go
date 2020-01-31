@@ -1,8 +1,8 @@
-package meny_test
+package menu_test
 
 import (
 	"bytes"
-	"github.com/lunjon/lunch/internal/pkg/meny"
+	"github.com/lunjon/lunch/internal/pkg/menu"
 	"strings"
 	"testing"
 )
@@ -31,7 +31,7 @@ func TestTableOutputFormat(t *testing.T) {
 
 func TestFilterDayMonday(t *testing.T) {
 	m := testMeny
-	m.FilterDay(func(d *meny.Day) bool {
+	m.FilterDay(func(d *menu.Day) bool {
 		if d.Weekday() == "Monday" {
 			return true
 		}
@@ -43,19 +43,20 @@ func TestFilterDayMonday(t *testing.T) {
 	}
 }
 
-var monday = meny.NewDay(
+var monday = menu.NewDay(
 	"Monday",
-	meny.NewCourse("Veg", "Pancakes"),
-	meny.NewCourse("Local", "Köttbullar"),
+	menu.NewCourse("Veg", "Pancakes"),
+	menu.NewCourse("Local", "Köttbullar"),
 )
 
-var tuesday = meny.NewDay(
+var tuesday = menu.NewDay(
 	"Tuesday",
-	meny.NewCourse("Veg", "Soup"),
-	meny.NewCourse("Local", "Pizza"),
+	menu.NewCourse("Veg", "Soup"),
+	menu.NewCourse("Local", "Pizza"),
 )
 
-var testMeny = meny.NewMeny(
+var testMeny = menu.NewMenu(
+	"fake",
 	monday,
 	tuesday,
 )

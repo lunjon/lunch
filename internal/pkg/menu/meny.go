@@ -1,4 +1,4 @@
-package meny
+package menu
 
 import (
 	"fmt"
@@ -29,16 +29,39 @@ func NewCourse(t, d string) *Course {
 	}
 }
 
-// Day represents the part of a meny on a particular da.
+// Day represents the part of a menu on a particular da.
 type Day struct {
 	weekDay string
 	courses []*Course
+}
+
+func EmptyDay() *Day {
+	return &Day{}
+}
+
+func (day *Day) SetWeekday(s string) {
+	day.weekDay = s
+}
+
+func (day *Day) AddCourse(c *Course) {
+	day.courses = append(day.courses, c)
 }
 
 // NewDay creates a new day.
 func NewDay(wd string, courses ...*Course) *Day {
 	return &Day{
 		weekDay: wd,
+		courses: courses,
+	}
+}
+
+// Copy returns the name of this day.
+func (day *Day) Copy() *Day {
+	courses := make([]*Course, len(day.courses))
+	copy(courses, day.courses)
+
+	return &Day{
+		weekDay: day.weekDay,
 		courses: courses,
 	}
 }
@@ -79,34 +102,33 @@ func (day *Day) Translate() string {
 	return day.weekDay
 }
 
-// Meny is the complete collection of courses
+// GetMenu is the complete collection of courses
 // over a week.
-type Meny struct {
+type Menu struct {
+	name   string
 	Days   []*Day
 	output io.Writer
 	// TODO: add week number
 	number int
 }
 
-// NewMeny constructs a meny consisting of the given days.
-func NewMeny(days ...*Day) *Meny {
-	return &Meny{
+// NewMenu constructs a menu consisting of the given days.
+func NewMenu(name string, days ...*Day) *Menu {
+	return &Menu{
 		Days:   days,
 		output: os.Stdout,
 	}
 }
 
-// Render the meny to its output.
-func (meny *Meny) Render() {
-	weekday := strings.ToLower(time.Now().Weekday().String())
-
+// Render the menu to its output.
+func (menu *Menu) Render() {
 	type row struct {
 		bold bool
 		data []string
 	}
 
 	var rows []row
-	for _, day := range meny.Days {
+	for _, day := range menu.Days {
 		for _, c := range day.courses {
 			r := row{
 				bold: day.Today(),
@@ -116,7 +138,7 @@ func (meny *Meny) Render() {
 		}
 	}
 
-	table := tablewriter.NewWriter(meny.output)
+	table := tablewriter.NewWriter(menu.output)
 	table.SetAutoMergeCells(true)
 	table.SetRowLine(true)
 	table.SetHeader([]string{"Day", "Courses"})
@@ -136,38 +158,42 @@ func (meny *Meny) Render() {
 	}
 
 	table.Render()
-	fmt.Println(weekday)
 }
 
-// Count returns the number of days in this meny.
-func (meny *Meny) Count() int {
-	return len(meny.Days)
+// Count returns the number of days in this menu.
+func (menu *Menu) Count() int {
+	return len(menu.Days)
 }
 
 // SetOutput changes the default output of os.Stdout
 // to o instead.
-func (meny *Meny) SetOutput(o io.Writer) {
-	meny.output = o
+func (menu *Menu) SetOutput(o io.Writer) {
+	menu.output = o
 }
 
-// FilterDay runs the predicate for each day in the meny
+// FilterDay runs the predicate for each day in the menu
 // and keeps only those that returns true on the predicate
 // function.
-func (meny *Meny) FilterDay(pred func(*Day) bool) {
+func (menu *Menu) FilterDay(pred func(*Day) bool) {
 	filtered := make([]*Day, 0)
-	for _, day := range meny.Days {
+	for _, day := range menu.Days {
 		if pred(day) {
 			filtered = append(filtered, day)
 		}
 	}
 
-	meny.Days = filtered
+	menu.Days = filtered
+}
+
+func (menu *Menu) Name() string {
+	return menu.name
 }
 
 // Today is a function that can be used to
-// run FilterDay with to filter todays day
-// in the meny.
+// run FilterDay with to filter today's day
+// in the menu.
 func Today(day *Day) bool {
 	today := time.Now().Weekday().String()
-	return strings.ToLower(today) == strings.ToLower(day.weekDay)
+	return strings.ToLower(today) == day.Translate()
+
 }
