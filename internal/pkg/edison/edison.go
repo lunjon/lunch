@@ -5,6 +5,7 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/lunjon/lunch/internal/pkg/lunch"
 	"github.com/lunjon/lunch/internal/pkg/menu"
+	"log"
 )
 
 var (
@@ -32,6 +33,7 @@ func (edison *Edison) GetMenu() (*menu.Menu, error) {
 	}
 
 	collector.OnScraped(func(_ *colly.Response) {
+		log.Print("Scraping done, closing channel")
 		close(itemChannel)
 	})
 
@@ -64,5 +66,7 @@ func parseDay(element *colly.HTMLElement) {
 	})
 
 	m := menu.NewDay(day, courses...)
+
+	log.Print("Sending Day on channel")
 	itemChannel <- m
 }

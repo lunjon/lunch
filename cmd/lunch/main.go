@@ -22,7 +22,7 @@ func main() {
 		Use:   "lunch",
 		Short: "Get the menu for the local restaurants",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			verbose, _ := cmd.PersistentFlags().GetBool(verboseFlag)
+			verbose, _ := cmd.Flags().GetBool(verboseFlag)
 			if !verbose {
 				log.SetOutput(ioutil.Discard)
 			}

@@ -3,6 +3,7 @@ package menu
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -50,7 +51,7 @@ func (day *Day) AddCourse(c *Course) {
 // NewDay creates a new day.
 func NewDay(wd string, courses ...*Course) *Day {
 	return &Day{
-		weekDay: wd,
+		weekDay: strings.TrimSpace(wd),
 		courses: courses,
 	}
 }
@@ -74,12 +75,13 @@ func (day *Day) Weekday() string {
 // Today returns true if this day is todays date.
 func (day *Day) Today() bool {
 	weekdayEnglish := strings.ToLower(time.Now().Weekday().String())
-	return day.Translate() == weekdayEnglish
+	translated := day.Translate()
+	return translated == weekdayEnglish
 }
 
 var translations = map[string][]string{
 	"monday":    {"måndag", "monday"},
-	"tuesday":   {"tisday", "tuesdag"},
+	"tuesday":   {"tisdag", "tuesday"},
 	"wednesday": {"onsdag", "wednesday"},
 	"thursday":  {"torsdag", "thursday"},
 	"friday":    {"fredag", "friday"},
@@ -99,6 +101,7 @@ func (day *Day) Translate() string {
 		}
 	}
 
+	log.Printf("No translation found, returning weekday: %s", day.weekDay)
 	return day.weekDay
 }
 
@@ -138,6 +141,8 @@ func (menu *Menu) Render() {
 		}
 	}
 
+	log.Printf("Found %d row(s)", len(rows))
+
 	table := tablewriter.NewWriter(menu.output)
 	table.SetAutoMergeCells(true)
 	table.SetRowLine(true)
@@ -146,7 +151,6 @@ func (menu *Menu) Render() {
 
 	for _, row := range rows {
 		if row.bold {
-			// table.Rich(row.data, []tablewriter.Colors{tablewriter.Colors{tablewriter.Bold}})
 			colors := []tablewriter.Colors{
 				tablewriter.Colors{tablewriter.Bold, tablewriter.FgGreenColor},
 				tablewriter.Colors{tablewriter.Bold, tablewriter.FgGreenColor},
